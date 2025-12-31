@@ -63,8 +63,10 @@ export const repayLoan = async (req: any, res: Response) => {
 
             // 4. Handle Full Repayment Events
             if (isFullyPaid) {
-                // Update Credit Score
-                await CreditScoreService.updateScore(userId, CreditScoreRules.ON_TIME_REPAYMENT);
+                // Update Credit Score only if it was not defaulted
+                if (loan.status !== 'DEFAULTED') {
+                    await CreditScoreService.updateScore(userId, CreditScoreRules.ON_TIME_REPAYMENT);
+                }
             }
         });
 
@@ -223,13 +225,16 @@ export const applyLoan = async (req: any, res: Response) => {
 
 export const getMyLoans = async (req: any, res: Response) => {
     try {
+        console.log(`[DEBUG] Fetching loans for user ID: ${req.user.id}`);
         const loans = await prisma.loan.findMany({
             where: { userId: req.user.id },
             orderBy: { createdAt: 'desc' },
             include: { product: true }
         });
+        console.log(`[DEBUG] Found ${loans.length} loans for user ID: ${req.user.id}`);
         res.json(loans);
     } catch (error) {
+        console.error(`[ERROR] Error fetching loans for user ID: ${req.user.id}`, error);
         res.status(500).json({ message: 'Error fetching loans' });
     }
 };
