@@ -1,17 +1,28 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { MpesaService } from '../services/mpesa.service';
 
 export const getWallet = async (req: any, res: Response) => {
     try {
+        const userId = req.user.id;
         const wallet = await prisma.wallet.findUnique({
-            where: { userId: req.user.id },
+            where: { userId },
             include: {
                 transactions: {
                     orderBy: { createdAt: 'desc' },
-                    take: 50
+                    take: 20
                 }
             }
         });
+
+        if (!wallet) {
+            // Create wallet if not exists (Lazy creation)
+            const newWallet = await prisma.wallet.create({
+                data: { userId, balance: 0.0 }
+            });
+            return res.json(newWallet);
+        }
+
         res.json(wallet);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching wallet' });
@@ -19,40 +30,54 @@ export const getWallet = async (req: any, res: Response) => {
 };
 
 export const withdraw = async (req: any, res: Response) => {
-    // Logic for M-Pesa B2C to be integrated here
-    // For now: Check balance -> Deduct -> Create Transaction
     const { amount } = req.body;
     const userId = req.user.id;
-    const withdrawAmount = Number(amount);
+
+    if (!amount || amount <= 0) {
+        return res.status(400).json({ message: 'Invalid amount' });
+    }
 
     try {
-        const wallet = await prisma.wallet.findUnique({ where: { userId } });
-        if (!wallet || Number(wallet.balance) < withdrawAmount) {
-            return res.status(400).json({ message: 'Insufficient funds' });
-        }
-
-        // Atomic transaction
         await prisma.$transaction(async (tx) => {
+            const wallet = await tx.wallet.findUniqueOrThrow({ where: { userId } });
+            const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+
+            if (Number(wallet.balance) < Number(amount)) {
+                throw new Error('Insufficient funds');
+            }
+
             // 1. Deduct Balance
             await tx.wallet.update({
-                where: { userId },
-                data: { balance: { decrement: withdrawAmount } }
+                where: { id: wallet.id },
+                data: { balance: { decrement: Number(amount) } }
             });
 
-            // 2. Create Transaction Record
-            await tx.transaction.create({
+            // 2. Record Transaction
+            const transaction = await tx.transaction.create({
                 data: {
                     walletId: wallet.id,
                     type: 'WITHDRAWAL',
-                    amount: withdrawAmount,
-                    status: 'PENDING', // Pending M-Pesa callback
+                    amount: Number(amount),
+                    status: 'PENDING', // Will be updated by M-Pesa callback in real app
                     description: 'Withdrawal to M-Pesa'
                 }
             });
+
+            // 3. Initiate M-Pesa B2C
+            // In a real app, we might do this outside the transaction or handle failure gracefully to reverse
+            // For now, we assume immediate success of the API call
+            await MpesaService.initiateB2C(user.phoneNumber || '254700000000', amount, transaction.id);
+
+            // 4. Update Transaction Status
+            await tx.transaction.update({
+                where: { id: transaction.id },
+                data: { status: 'COMPLETED' }
+            });
         });
 
-        res.json({ message: 'Withdrawal initiated' });
-    } catch (error) {
-        res.status(500).json({ message: 'Withdrawal failed' });
+        res.json({ message: 'Withdrawal successful' });
+    } catch (error: any) {
+        console.error(error);
+        res.status(400).json({ message: error.message || 'Withdrawal failed' });
     }
 };

@@ -1,10 +1,12 @@
 import { Router } from 'express';
-import { getWallet, withdraw } from '../controllers/wallet.controller';
 import { authenticate } from '../middleware/auth.middleware';
+import { getWallet, withdraw } from '../controllers/wallet.controller';
 
 const router = Router();
 
-router.get('/', authenticate, getWallet);
-router.post('/withdraw', authenticate, withdraw);
+router.use(authenticate);
+
+router.get('/', getWallet);
+router.post('/withdraw', withdraw);
 
 export default router;

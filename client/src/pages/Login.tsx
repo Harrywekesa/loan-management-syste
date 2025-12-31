@@ -28,6 +28,11 @@ export default function Login() {
         <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
             <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow dark:bg-gray-800">
                 <div>
+                    <div className="mb-4 text-center">
+                        <Link to="/" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                            &larr; Back to Home
+                        </Link>
+                    </div>
                     <h2 className="text-center text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
                         Sign in to your account
                     </h2>

@@ -14,9 +14,11 @@ export default function DocumentUpload() {
         formData.append('type', type);
 
         try {
-            // Mock upload endpoint or real one if implemented
-            // await api.post('/documents/upload', formData); 
-            alert('Upload simulated (Backend pending)');
+            await api.post('/documents/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            alert('Document uploaded successfully!');
+            setFile(null);
         } catch (error) {
             alert('Upload failed');
         } finally {

@@ -47,7 +47,11 @@ export default function ApplyLoan() {
                     <label className="block text-sm font-medium mb-1">Select Product</label>
                     <select className="w-full border rounded p-2" value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)}>
                         <option value="">-- Select --</option>
-                        {products.map(p => <option key={p.id} value={p.id}>{p.name} (Max: {p.maxAmount})</option>)}
+                        {products.map(p => (
+                            <option key={p.id} value={p.id} disabled={p.minCreditScore > 0}>
+                                {p.name} (Max: {p.maxAmount}) {p.minCreditScore > 0 ? `- Min Score: ${p.minCreditScore}` : ''}
+                            </option>
+                        ))}
                     </select>
                 </div>
 

@@ -11,7 +11,8 @@ export default function Register() {
         password: '',
         fullName: '',
         idNumber: '',
-        phoneNumber: ''
+        phoneNumber: '',
+        termsAccepted: false
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -21,7 +22,10 @@ export default function Register() {
         setLoading(true);
         setError('');
         try {
-            const res = await api.post('/auth/register', formData);
+            const res = await api.post('/auth/register', {
+                ...formData,
+                termsVersion: '1.0'
+            });
             login(res.data.token, res.data.user);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Registration failed');
@@ -47,7 +51,21 @@ export default function Register() {
                     <input className="block w-full rounded-md border py-2 px-3" placeholder="Password" type="password" required
                         onChange={e => setFormData({ ...formData, password: e.target.value })} />
 
-                    <button type="submit" disabled={loading} className="w-full rounded-md bg-indigo-600 py-2 text-white disabled:opacity-50">
+                    <div className="flex items-center space-x-2">
+                        <input
+                            type="checkbox"
+                            id="terms"
+                            required
+                            className="rounded border-gray-300"
+                            checked={formData.termsAccepted}
+                            onChange={e => setFormData({ ...formData, termsAccepted: e.target.checked })}
+                        />
+                        <label htmlFor="terms" className="text-sm text-gray-600">
+                            I accept the <span className="text-indigo-600 underline cursor-pointer">Terms & Conditions</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" disabled={loading || !formData.termsAccepted} className="w-full rounded-md bg-indigo-600 py-2 text-white disabled:opacity-50">
                         {loading ? 'Registering...' : 'Register'}
                     </button>
                 </form>

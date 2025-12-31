@@ -1,67 +1,52 @@
-
-/**
- * Financial Formulas Service
- * Implements strict calculation logic for loans.
- */
-
-interface LoanInput {
-    principal: number;
-    interestRate: number; // Percentage
-    processingFeeRate: number; // Percentage
-    isFeeFixed: boolean;
-    durationDays: number;
-    penaltyRate: number; // Daily percentage
-}
-
 export class FormulaService {
     /**
-     * Calculate Processing Fee
-     * Formula: P * (F / 100) OR Fixed F
+     * Calculates the interest amount based on Principal and Rate.
+     * Currently implements Flat Rate method.
      */
-    static calculateProcessingFee(principal: number, feeRate: number, isFixed: boolean): number {
-        if (isFixed) return feeRate;
-        return principal * (feeRate / 100);
+    static calculateInterest(principal: number, rate: number): number {
+        return Number((principal * (rate / 100)).toFixed(2));
     }
 
     /**
-     * Calculate Interest (Flat Rate)
-     * Formula: P * (R / 100)
+     * Calculates the processing fee.
+     * Can be a fixed amount or a percentage of the principal.
      */
-    static calculateInterest(principal: number, interestRate: number): number {
-        return principal * (interestRate / 100);
+    static calculateProcessingFee(principal: number, fee: number, isFixed: boolean): number {
+        if (isFixed) {
+            return Number(fee.toFixed(2));
+        }
+        return Number((principal * (fee / 100)).toFixed(2));
     }
 
     /**
-     * Calculate Total Repayable
-     * Formula: P + Interest
+     * Calculates the total amount the user needs to repay.
+     * Total = Principal + Interest
      */
     static calculateTotalRepayable(principal: number, interest: number): number {
-        return principal + interest;
+        return Number((principal + interest).toFixed(2));
     }
 
     /**
-     * Calculate Due Date
-     * Formula: Disbursal Date + T days
+     * Calculates the actual amount disbursed to the user's wallet.
+     * Credit = Principal - Processing Fee
      */
-    static calculateDueDate(disbursedAt: Date, durationDays: number): Date {
-        const dueDate = new Date(disbursedAt);
+    static calculateWalletCredit(principal: number, fee: number): number {
+        return Number((principal - fee).toFixed(2));
+    }
+
+    /**
+     * Calculates the daily penalty amount on the remaining balance.
+     */
+    static calculatePenalty(balance: number, penaltyRate: number): number {
+        return Number((balance * (penaltyRate / 100)).toFixed(2));
+    }
+
+    /**
+     * Calculates the due date based on the duration in days.
+     */
+    static calculateDueDate(durationDays: number): Date {
+        const dueDate = new Date();
         dueDate.setDate(dueDate.getDate() + durationDays);
         return dueDate;
-    }
-
-    /**
-     * Calculate Daily Penalty
-     * Formula: Outstanding Balance * (L / 100)
-     */
-    static calculateDailyPenalty(outstandingBalance: number, penaltyRate: number): number {
-        return outstandingBalance * (penaltyRate / 100);
-    }
-
-    /**
-     * Calculate Wallet Credit Amount
-     * Formula: Principal - Processing Fee
-     */
-    static calculateWalletCredit(principal: number, processingFee: number): number {
-        return principal - processingFee;
     }
 }

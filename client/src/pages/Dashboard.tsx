@@ -37,10 +37,14 @@ export default function Dashboard() {
                     <h3 className="text-sm font-medium text-gray-500">Wallet Balance</h3>
                     <p className="mt-2 text-3xl font-bold text-green-600">KES {Number(wallet?.balance || 0).toLocaleString()}</p>
                 </div>
-                <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
-                    <h3 className="text-sm font-medium text-gray-500">Credit Score</h3>
-                    <p className="mt-2 text-3xl font-bold text-indigo-600">750</p>
-                </div>
+
+                {/* Hide Credit Score for Admins */}
+                {user?.role === 'BORROWER' && (
+                    <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+                        <h3 className="text-sm font-medium text-gray-500">Credit Score</h3>
+                        <p className="mt-2 text-3xl font-bold text-indigo-600">{user?.creditScore || 50}</p>
+                    </div>
+                )}
             </div>
 
             <div className="rounded-xl bg-white shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700 overflow-hidden">

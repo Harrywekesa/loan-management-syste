@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.routes';
 import loanRoutes from './routes/loan.routes';
 import walletRoutes from './routes/wallet.routes';
 import adminRoutes from './routes/admin.routes';
+import documentRoutes from './routes/document.routes';
 
 const app: Express = express();
 
@@ -18,6 +19,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/loans', loanRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/documents', documentRoutes);
+app.use('/uploads', express.static('uploads')); // Serve uploaded files statically for now
 
 app.get('/health', (req: Request, res: Response) => {
     res.status(200).json({ status: 'ok', uptime: process.uptime() });
