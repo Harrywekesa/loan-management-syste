@@ -21,7 +21,9 @@ export const repayLoan = async (req: any, res: Response) => {
             const loan = await tx.loan.findUniqueOrThrow({ where: { id } });
 
             if (loan.status === 'PAID') throw new Error('Loan is already paid');
-            if (loan.status === 'PENDING' || loan.status === 'REJECTED') throw new Error('Loan is not active');
+            if (!['ACTIVE', 'DEFAULTED', 'DISBURSED'].includes(loan.status)) {
+                throw new Error('Loan is not active for repayment. It might be pending, approved but not disbursed, or rejected.');
+            }
 
             const currentBalance = Number(loan.balance);
             if (amount > currentBalance) {

@@ -94,12 +94,11 @@ export default function Dashboard() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">{loan.dueDate ? new Date(loan.dueDate).toLocaleDateString() : '-'}</td>
-                                    <td className="px-6 py-4 text-right">
-                                        {loan.balance > 0 && (
-                                            <button onClick={() => handleRepayClick(loan)} className="text-indigo-600 hover:text-indigo-900 font-semibold">Repay</button>
-                                        )}
-                                    </td>
-                                </tr>
+                                                                         <td className="px-6 py-4 text-right">
+                                                                            {loan.balance > 0 && !['PENDING', 'REJECTED'].includes(loan.status) && (
+                                                                                <button onClick={() => handleRepayClick(loan)} className="text-indigo-600 hover:text-indigo-900 font-semibold">Repay</button>
+                                                                            )}
+                                                                        </td>                                </tr>
                             ))}
                             {loans.length === 0 && (
                                 <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-500">No active loans found.</td></tr>

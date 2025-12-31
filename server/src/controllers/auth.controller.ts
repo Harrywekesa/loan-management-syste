@@ -77,18 +77,23 @@ export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     try {
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+        const userWithDocs = await prisma.user.findUnique({
+            where: { email },
+            include: { documents: true }
+        });
 
-        const isValid = await bcrypt.compare(password, user.password);
+        if (!userWithDocs) return res.status(400).json({ message: 'Invalid credentials' });
+
+        const isValid = await bcrypt.compare(password, userWithDocs.password);
         if (!isValid) return res.status(400).json({ message: 'Invalid credentials' });
 
-        if (user.status === 'SUSPENDED' || user.status === 'BLACKLISTED') {
+        if (userWithDocs.status === 'SUSPENDED' || userWithDocs.status === 'BLACKLISTED') {
             return res.status(403).json({ message: 'Account is suspended or blacklisted. Contact support.' });
         }
 
-        const token = signToken({ id: user.id, role: user.role });
-        res.json({ token, user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role } });
+        const token = signToken({ id: userWithDocs.id, role: userWithDocs.role });
+        const { password: _, ...user } = userWithDocs;
+        res.json({ token, user });
     } catch (error) {
         console.error('Login Error:', error);
         res.status(500).json({ message: 'Login failed' });

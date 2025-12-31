@@ -8,6 +8,7 @@ interface User {
     role: 'BORROWER' | 'ADMIN' | 'SUPER_ADMIN';
     fullName?: string;
     status?: string;
+    documents?: any[];
 }
 
 interface AuthContextType {

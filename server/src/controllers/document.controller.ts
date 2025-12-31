@@ -5,14 +5,14 @@ export const uploadDocument = async (req: any, res: Response) => {
     try {
         if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
 
-        const { type } = req.body;
+        const { title } = req.body;
         const userId = req.user.id;
 
         const document = await prisma.document.create({
             data: {
                 userId,
-                title: type, // ID_FRONT, ID_BACK, etc.
-                url: req.file.path,
+                title: title,
+                url: `/${req.file.path.replace(/\\/g, '/')}`,
                 status: 'PENDING'
             }
         });
