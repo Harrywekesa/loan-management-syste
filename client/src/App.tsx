@@ -13,6 +13,7 @@ import DocumentReview from './pages/admin/DocumentReview';
 import UserManagement from './pages/admin/UserManagement';
 import AdminSettings from './pages/admin/AdminSettings';
 import LoanProducts from './pages/admin/LoanProducts';
+import AdminReports from './pages/admin/AdminReports'; // Import
 import Profile from './pages/Profile'; // Import
 
 import LandingPage from './pages/LandingPage'; // Import
@@ -37,6 +38,7 @@ function App() {
 
                         <Route path="/admin" element={<DashboardLayout />}>
                             <Route index element={<AdminDashboard />} />
+                            <Route path="reports" element={<AdminReports />} /> {/* Reports Route */}
                             <Route path="loans" element={<AdminDashboard />} />
                             <Route path="products" element={<LoanProducts />} />
                             <Route path="documents" element={<DocumentReview />} />

@@ -48,6 +48,12 @@ export default function Dashboard() {
         fetchLoans();
     };
 
+    const getScoreColor = (score: number) => {
+        if (score >= 700) return 'text-green-500';
+        if (score >= 500) return 'text-yellow-500';
+        return 'text-red-500';
+    };
+
     return (
         <div className="space-y-8">
             <div>
@@ -68,7 +74,10 @@ export default function Dashboard() {
                 {user?.role === 'BORROWER' && (
                     <div className="rounded-xl bg-card text-card-foreground p-6 shadow-sm border border-border">
                         <h3 className="text-sm font-medium text-muted-foreground">Credit Score</h3>
-                        <p className="mt-2 text-3xl font-bold text-primary">{user?.creditScore || 50}</p>
+                        <p className={`mt-2 text-3xl font-bold ${getScoreColor(user?.creditScore || 50)}`}>{user?.creditScore || 50}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                            {(user?.creditScore || 50) >= 700 ? 'Excellent' : (user?.creditScore || 50) >= 500 ? 'Good' : 'At Risk'}
+                        </p>
                     </div>
                 )}
             </div>
@@ -80,9 +89,29 @@ export default function Dashboard() {
                 </div>
             )}
 
+            {/* Repayment Schedule Section for Active Loans */}
+            {loans.some(l => l.status === 'APPROVED' || l.status === 'active') && (
+                <div className="bg-card text-card-foreground p-4 rounded-lg border border-border shadow-sm">
+                    <h3 className="font-semibold text-muted-foreground mb-4">Upcoming Repayments</h3>
+                    <div className="space-y-3">
+                        {loans.filter(l => l.status === 'APPROVED' || l.status === 'active').map(loan => {
+                            const daysLeft = loan.dueDate ? Math.ceil((new Date(loan.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
+                            return (
+                                <div key={loan.id} className="flex justify-between items-center text-sm p-3 bg-muted/20 rounded-md">
+                                    <span className="font-medium">{loan.product?.name}</span>
+                                    <span className={daysLeft < 3 ? "text-red-500 font-bold" : "text-muted-foreground"}>
+                                        Due in {daysLeft} days ({new Date(loan.dueDate).toLocaleDateString()})
+                                    </span>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            )}
+
             <div className="rounded-xl bg-card text-card-foreground shadow-sm border border-border overflow-hidden">
                 <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-muted/20">
-                    <h3 className="font-semibold">Active Loans</h3>
+                    <h3 className="font-semibold">All Loans</h3>
                     <Link to="/dashboard/apply" className="text-xs font-semibold text-primary-foreground bg-primary px-3 py-1.5 rounded hover:opacity-90">New Application</Link>
                 </div>
                 <div className="overflow-x-auto">
@@ -121,7 +150,7 @@ export default function Dashboard() {
                                     </td>
                                     <td className="px-6 py-4">{loan.dueDate ? new Date(loan.dueDate).toLocaleDateString() : '-'}</td>
                                     <td className="px-6 py-4 text-right">
-                                        {loan.balance > 0 && !['PENDING', 'REJECTED'].includes(loan.status) && (
+                                        {loan.balance > 0 && !['PENDING', 'REJECTED', 'PAID'].includes(loan.status) && (
                                             <button onClick={() => handleRepayClick(loan)} className="text-indigo-600 hover:text-indigo-900 font-semibold">Repay</button>
                                         )}
                                     </td>                                </tr>

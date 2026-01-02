@@ -25,6 +25,7 @@ export default function DashboardLayout() {
 
     const adminLinks = [
         { name: 'Overview', href: '/admin', icon: LayoutDashboard },
+        { name: 'Reports & Analytics', href: '/admin/reports', icon: FileText },
         { name: 'Loan Requests', href: '/admin/loans', icon: FileText },
         { name: 'Products', href: '/admin/products', icon: Settings },
         { name: 'Document Review', href: '/admin/documents', icon: FileText },
