@@ -46,36 +46,32 @@ export const withdraw = async (req: any, res: Response) => {
                 throw new Error('Insufficient funds');
             }
 
-            // 1. Deduct Balance
+            // 1. Deduct Balance IMMEDIATELY (To prevent double withdrawal)
+            // If M-Pesa fails later (timeout/rejected), we refund via Callback logic.
             await tx.wallet.update({
                 where: { id: wallet.id },
                 data: { balance: { decrement: Number(amount) } }
             });
 
-            // 2. Record Transaction
+            // 2. Record Transaction (PENDING)
             const transaction = await tx.transaction.create({
                 data: {
                     walletId: wallet.id,
                     type: 'WITHDRAWAL',
                     amount: Number(amount),
-                    status: 'PENDING', // Will be updated by M-Pesa callback in real app
+                    status: 'PENDING',
                     description: 'Withdrawal to M-Pesa'
                 }
             });
 
             // 3. Initiate M-Pesa B2C
-            // In a real app, we might do this outside the transaction or handle failure gracefully to reverse
-            // For now, we assume immediate success of the API call
-            await MpesaService.initiateB2C(user.phoneNumber || '254700000000', amount, transaction.id);
+            // Use transaction ID as reference for matching in callback
+            await MpesaService.initiateB2C(user.phoneNumber || '254700000000', amount, `W-${transaction.id}`);
 
-            // 4. Update Transaction Status
-            await tx.transaction.update({
-                where: { id: transaction.id },
-                data: { status: 'COMPLETED' }
-            });
+            // Leave status as PENDING.
         });
 
-        res.json({ message: 'Withdrawal successful' });
+        res.json({ message: 'Withdrawal request processed. Please wait for M-Pesa confirmation.' });
     } catch (error: any) {
         console.error(error);
         res.status(400).json({ message: error.message || 'Withdrawal failed' });

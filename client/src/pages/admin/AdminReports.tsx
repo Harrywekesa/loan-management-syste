@@ -1,76 +1,162 @@
-import { useState, useEffect } from 'react';
+
+import { useEffect, useState } from 'react';
 import api from '../../lib/api';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import { saveAs } from 'file-saver';
+import { format } from 'date-fns';
 
 export default function AdminReports() {
     const [summary, setSummary] = useState<any>(null);
     const [trends, setTrends] = useState<any[]>([]);
+    const [loans, setLoans] = useState<any[]>([]);
+    const [transactions, setTransactions] = useState<any[]>([]);
 
     useEffect(() => {
-        api.get('/admin/reports/summary').then(res => setSummary(res.data)).catch(console.error);
-        api.get('/admin/reports/trends').then(res => setTrends(res.data)).catch(console.error);
+        fetchData();
     }, []);
 
-    const handleExport = () => {
-        const csvContent = "data:text/csv;charset=utf-8,"
-            + "Date,Loans Issued\n"
-            + trends.map(e => `${e.date},${e.count}`).join("\n");
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "loan_trends.csv");
-        document.body.appendChild(link);
-        link.click();
+    const fetchData = async () => {
+        try {
+            const [sumRes, trendRes, loanRes, txRes] = await Promise.all([
+                api.get('/analytics/summary'),
+                api.get('/analytics/trends'),
+                api.get('/analytics/loans'),
+                api.get('/analytics/transactions')
+            ]);
+            setSummary(sumRes.data);
+            setTrends(trendRes.data);
+            setLoans(loanRes.data);
+            setTransactions(txRes.data);
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-    if (!summary) return <div>Loading Reports...</div>;
+    const exportToExcel = () => {
+        const wb = XLSX.utils.book_new();
+        
+        // Loans Sheet
+        const loansWS = XLSX.utils.json_to_sheet(loans.map(l => ({
+            ID: l.id,
+            User: l.user.fullName,
+            Product: l.product.name,
+            Principal: l.principal,
+            Interest: l.interest,
+            Balance: l.balance,
+            Status: l.status,
+            Date: format(new Date(l.createdAt), 'yyyy-MM-dd HH:mm')
+        })));
+        XLSX.utils.book_append_sheet(wb, loansWS, "Loans");
 
-    const maxTrend = Math.max(...trends.map(t => t.count), 1);
+        // Transactions Sheet
+        const txWS = XLSX.utils.json_to_sheet(transactions.map(t => ({
+            ID: t.id,
+            User: t.wallet.user.fullName,
+            Type: t.type,
+            Amount: t.amount,
+            Status: t.status,
+            Date: format(new Date(t.createdAt), 'yyyy-MM-dd HH:mm')
+        })));
+        XLSX.utils.book_append_sheet(wb, txWS, "Transactions");
+
+        const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const data = new Blob([excelBuffer], { type: 'application/octet-stream' });
+        saveAs(data, 'LoanSystem_Report.xlsx');
+    };
+
+    const exportToPDF = () => {
+        const doc = new jsPDF();
+        doc.text("Loan Management System Report", 20, 10);
+        
+        doc.text("Summary", 20, 20);
+        doc.setFontSize(10);
+        doc.text(`Total Loans Issued: ${summary?.totalLoansIssued}`, 20, 30);
+        doc.text(`Total Principal: KES ${summary?.totalPrincipalIssued}`, 20, 35);
+        doc.text(`Total Interest Earned: KES ${summary?.totalInterestEarned}`, 20, 40);
+
+        (doc as any).autoTable({
+            startY: 50,
+            head: [['Date', 'User', 'Product', 'Amount', 'Status']],
+            body: loans.slice(0, 50).map(l => [
+                format(new Date(l.createdAt), 'yyyy-MM-dd'),
+                l.user.fullName,
+                l.product.name,
+                l.principal,
+                l.status
+            ]),
+        });
+
+        doc.save("LoanSystem_Report.pdf");
+    };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Reports & Analytics</h1>
-                <button onClick={handleExport} className="bg-green-600 text-white px-4 py-2 rounded">Export CSV</button>
+                <h1 className="text-3xl font-bold text-foreground">Reports & Analytics</h1>
+                <div className="space-x-4">
+                    <button onClick={exportToExcel} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Export Excel</button>
+                    <button onClick={exportToPDF} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Export PDF</button>
+                </div>
             </div>
 
-            {/* Financial Summary */}
-            <div className="grid md:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded shadow">
-                    <h3 className="text-gray-500 text-sm">Total Disbursed</h3>
-                    <p className="text-2xl font-bold">KES {summary.financials.disbursed.toLocaleString()}</p>
+            {/* KPIs */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-card p-6 rounded-xl border border-border">
+                    <h3 className="text-muted-foreground text-sm font-medium">Loans Issued</h3>
+                    <p className="text-2xl font-bold">{summary?.totalLoansIssued || 0}</p>
                 </div>
-                <div className="bg-white p-6 rounded shadow">
-                    <h3 className="text-gray-500 text-sm">Interest Earned</h3>
-                    <p className="text-2xl font-bold text-green-600">KES {summary.financials.interestEarned.toLocaleString()}</p>
+                <div className="bg-card p-6 rounded-xl border border-border">
+                    <h3 className="text-muted-foreground text-sm font-medium">Interest Earned</h3>
+                    <p className="text-2xl font-bold text-green-500">KES {Number(summary?.totalInterestEarned).toLocaleString()}</p>
                 </div>
-                <div className="bg-white p-6 rounded shadow">
-                    <h3 className="text-gray-500 text-sm">Penalties Collected</h3>
-                    <p className="text-2xl font-bold text-red-600">KES {summary.financials.penaltiesAccrued.toLocaleString()}</p>
+                <div className="bg-card p-6 rounded-xl border border-border">
+                    <h3 className="text-muted-foreground text-sm font-medium">Penalties Collected</h3>
+                    <p className="text-2xl font-bold text-red-500">KES {Number(summary?.totalPenaltiesCollected).toLocaleString()}</p>
                 </div>
-                <div className="bg-white p-6 rounded shadow">
-                    <h3 className="text-gray-500 text-sm">Default Rate</h3>
-                    <p className="text-2xl font-bold text-gray-700">
-                        {((summary.counts.defaulted / (summary.counts.total || 1)) * 100).toFixed(1)}%
+                <div className="bg-card p-6 rounded-xl border border-border">
+                    <h3 className="text-muted-foreground text-sm font-medium">Default Rate</h3>
+                    <p className="text-2xl font-bold text-orange-500">
+                        {summary?.totalLoansIssued ? ((summary.totalDefaultedLoans / summary.totalLoansIssued) * 100).toFixed(1) : 0}%
                     </p>
                 </div>
             </div>
 
-            {/* Trends Chart (CSS Only) */}
-            <div className="bg-white p-6 rounded shadow">
-                <h3 className="font-bold mb-6">Loans Issued (Last 7 Days)</h3>
-                <div className="flex items-end space-x-4 h-64">
-                    {trends.map((t, i) => (
-                        <div key={i} className="flex-1 flex flex-col items-center group relative">
-                            <div
-                                className="w-full bg-indigo-500 rounded-t hover:bg-indigo-600 transition-all"
-                                style={{ height: `${(t.count / maxTrend) * 100}%` }}
-                            ></div>
-                            <div className="mt-2 text-xs text-gray-500 transform -rotate-45 origin-top-left">{t.date}</div>
-                            <div className="absolute -top-8 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100">
-                                {t.count} Loans
-                            </div>
-                        </div>
-                    ))}
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="bg-card p-6 rounded-xl border border-border">
+                    <h3 className="text-lg font-semibold mb-6">Revenue Trend (6 Months)</h3>
+                    <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={trends}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                                <XAxis dataKey="name" stroke="#9CA3AF" />
+                                <YAxis stroke="#9CA3AF" />
+                                <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none' }} />
+                                <Legend />
+                                <Line type="monotone" dataKey="revenue" stroke="#10B981" name="Revenue (KES)" strokeWidth={2} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                <div className="bg-card p-6 rounded-xl border border-border">
+                    <h3 className="text-lg font-semibold mb-6">Loan Volume vs Repayments</h3>
+                    <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={trends}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                                <XAxis dataKey="name" stroke="#9CA3AF" />
+                                <YAxis stroke="#9CA3AF" />
+                                <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none' }} />
+                                <Legend />
+                                <Bar dataKey="loansIssued" fill="#6366F1" name="Issued (KES)" />
+                                <Bar dataKey="repayment" fill="#10B981" name="Repaid (KES)" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
         </div>

@@ -23,10 +23,19 @@ export default function AdminDashboard() {
     }, []);
 
     const handleAction = async (id: string, status: 'APPROVED' | 'REJECTED') => {
-        if (!confirm(`Are you sure you want to ${status} this loan?`)) return;
+        let reason = undefined;
+        if (status === 'REJECTED') {
+            const input = prompt('Please provide a reason for rejection:');
+            if (input === null) return; // Cancelled
+            if (!input.trim()) return alert('Reason is required for rejection');
+            reason = input;
+        } else {
+            if (!confirm(`Are you sure you want to ${status} this loan?`)) return;
+        }
+
         setLoading(true);
         try {
-            await api.patch(`/admin/loans/${id}`, { status });
+            await api.patch(`/admin/loans/${id}`, { status, rejectionReason: reason });
             fetchData(); // Refresh
         } catch (error) {
             alert('Action failed');
@@ -43,28 +52,28 @@ export default function AdminDashboard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="text-gray-500 text-sm font-medium">Total Users</h3>
+                <div className="bg-card text-card-foreground p-6 rounded-xl shadow-sm border border-border">
+                    <h3 className="text-muted-foreground text-sm font-medium">Total Users</h3>
                     <p className="text-3xl font-bold mt-2">{stats.users}</p>
                 </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="text-gray-500 text-sm font-medium">Pending Loans</h3>
+                <div className="bg-card text-card-foreground p-6 rounded-xl shadow-sm border border-border">
+                    <h3 className="text-muted-foreground text-sm font-medium">Pending Loans</h3>
                     <p className="text-3xl font-bold mt-2">{stats.loans}</p>
                 </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="text-gray-500 text-sm font-medium">System Liquidity (Mock)</h3>
-                    <p className="text-3xl font-bold mt-2 text-green-600">KES {Number(stats.walletBalance).toLocaleString()}</p>
+                <div className="bg-card text-card-foreground p-6 rounded-xl shadow-sm border border-border">
+                    <h3 className="text-muted-foreground text-sm font-medium">System Liquidity</h3>
+                    <p className="text-3xl font-bold mt-2 text-green-500">KES {Number(stats.walletBalance).toLocaleString()}</p>
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+            <div className="bg-card text-card-foreground rounded-xl shadow-sm border border-border overflow-hidden">
+                <div className="px-6 py-4 border-b border-border bg-muted/20 flex justify-between items-center">
                     <h3 className="font-semibold">Recent Loan Requests</h3>
-                    <button onClick={fetchData} className="text-xs text-indigo-600 font-medium hover:underline">Refresh</button>
+                    <button onClick={fetchData} className="text-xs text-primary font-medium hover:underline">Refresh</button>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-gray-50 text-gray-500">
+                        <thead className="bg-muted/50 text-muted-foreground">
                             <tr>
                                 <th className="px-6 py-3">Borrower</th>
                                 <th className="px-6 py-3">Amount</th>
@@ -79,7 +88,7 @@ export default function AdminDashboard() {
                                 <tr key={loan.id} className="border-b last:border-0 hover:bg-gray-50">
                                     <td className="px-6 py-4">
                                         <div className="font-medium">{loan.user?.fullName}</div>
-                                        <div className="text-xs text-gray-500">{loan.user?.email}</div>
+                                        <div className="text-xs text-muted-foreground">{loan.user?.email}</div>
                                     </td>
                                     <td className="px-6 py-4 font-bold">KES {Number(loan.principal).toLocaleString()}</td>
                                     <td className="px-6 py-4">KES {Number(loan.totalPayable).toLocaleString()}</td>

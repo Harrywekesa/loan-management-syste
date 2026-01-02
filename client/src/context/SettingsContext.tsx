@@ -6,14 +6,18 @@ interface SettingsContextType {
     themeColor: string;
     logoUrl: string;
     contactEmail: string;
+    privacyPolicy: string;
+    termsConditions: string;
     refreshSettings: () => void;
 }
 
 const SettingsContext = createContext<SettingsContextType>({
-    siteName: 'LoanSys',
+    siteName: 'Loan Management System',
     themeColor: '#4f46e5', // Default Indigo
     logoUrl: '',
     contactEmail: '',
+    privacyPolicy: '',
+    termsConditions: '',
     refreshSettings: () => { }
 });
 
@@ -62,10 +66,12 @@ const hexToHsl = (hex: string): string => {
 
 export const SettingsProvider = ({ children }: { children: React.ReactNode }) => {
     const [settings, setSettings] = useState({
-        siteName: 'LoanSys',
+        siteName: 'Loan Management System',
         themeColor: '#4f46e5',
         logoUrl: '',
-        contactEmail: ''
+        contactEmail: '',
+        privacyPolicy: '',
+        termsConditions: ''
     });
 
     const fetchSettings = async () => {
@@ -73,10 +79,12 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
             const res = await api.get('/auth/settings');
             if (res.data) {
                 const mappedSettings = {
-                    siteName: res.data.site_name || 'LoanSys',
+                    siteName: res.data.site_name || 'Loan Management System',
                     themeColor: res.data.theme_color || '#4f46e5',
                     logoUrl: res.data.logo_url || '',
-                    contactEmail: res.data.contact_email || ''
+                    contactEmail: res.data.contact_email || '',
+                    privacyPolicy: res.data.privacy_policy || '',
+                    termsConditions: res.data.terms_conditions || ''
                 };
                 setSettings(mappedSettings);
                 applyTheme(mappedSettings.themeColor, mappedSettings.siteName);

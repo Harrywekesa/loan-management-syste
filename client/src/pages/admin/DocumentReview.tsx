@@ -38,9 +38,9 @@ export default function DocumentReview() {
         <div className="space-y-6">
             <h1 className="text-2xl font-bold">Document Verification</h1>
 
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-card text-card-foreground rounded-lg shadow overflow-hidden border border-border">
                 <table className="w-full text-sm text-left">
-                    <thead className="bg-gray-50 text-gray-500">
+                    <thead className="bg-muted/50 text-muted-foreground">
                         <tr>
                             <th className="px-6 py-3">User</th>
                             <th className="px-6 py-3">Type</th>
@@ -50,10 +50,10 @@ export default function DocumentReview() {
                     </thead>
                     <tbody>
                         {documents.map(doc => (
-                            <tr key={doc.id} className="border-b hover:bg-gray-50">
+                            <tr key={doc.id} className="border-b border-border hover:bg-muted/50 transition-colors">
                                 <td className="px-6 py-4">
                                     <div className="font-medium">{doc.user?.fullName}</div>
-                                    <div className="text-xs text-gray-500">{doc.user?.idNumber}</div>
+                                    <div className="text-xs text-muted-foreground">{doc.user?.idNumber}</div>
                                 </td>
                                 <td className="px-6 py-4">{doc.title}</td>
                                 <td className="px-6 py-4">

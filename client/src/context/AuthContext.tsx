@@ -6,6 +6,12 @@ interface User {
     id: string;
     email: string;
     role: 'BORROWER' | 'ADMIN' | 'SUPER_ADMIN';
+    phoneNumber?: string;
+    profilePicture?: string;
+    creditScore?: number;
+    wallet?: {
+        balance: number;
+    };
     fullName?: string;
     status?: string;
     documents?: any[];

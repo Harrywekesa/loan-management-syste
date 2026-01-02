@@ -14,6 +14,8 @@ export default function Register() {
         phoneNumber: '',
         termsAccepted: false
     });
+    const [idFront, setIdFront] = useState<File | null>(null);
+    const [idBack, setIdBack] = useState<File | null>(null);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -21,10 +23,24 @@ export default function Register() {
         e.preventDefault();
         setLoading(true);
         setError('');
+
+        if (!idFront || !idBack) {
+            setError('Please upload both front and back of your ID.');
+            setLoading(false);
+            return;
+        }
+
         try {
-            const res = await api.post('/auth/register', {
-                ...formData,
-                termsVersion: '1.0'
+            const data = new FormData();
+            Object.keys(formData).forEach(key => {
+                data.append(key, (formData as any)[key]);
+            });
+            data.append('termsVersion', '1.0');
+            data.append('idFront', idFront);
+            data.append('idBack', idBack);
+
+            const res = await api.post('/auth/register', data, {
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
             login(res.data.token, res.data.user);
         } catch (err: any) {
@@ -48,6 +64,17 @@ export default function Register() {
                         onChange={e => setFormData({ ...formData, idNumber: e.target.value })} />
                     <input className="block w-full rounded-md border py-2 px-3" placeholder="Phone Number" required
                         onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })} />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ID Front</label>
+                            <input type="file" accept="image/*" onChange={e => setIdFront(e.target.files?.[0] || null)} className="block w-full text-xs" required />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ID Back</label>
+                            <input type="file" accept="image/*" onChange={e => setIdBack(e.target.files?.[0] || null)} className="block w-full text-xs" required />
+                        </div>
+                    </div>
+
                     <input className="block w-full rounded-md border py-2 px-3" placeholder="Password" type="password" required
                         onChange={e => setFormData({ ...formData, password: e.target.value })} />
 

@@ -139,7 +139,8 @@ exports.Prisma.UserScalarFieldEnum = {
   emailVerified: 'emailVerified',
   verificationToken: 'verificationToken',
   verificationTokenExpiry: 'verificationTokenExpiry',
-  creditScore: 'creditScore'
+  creditScore: 'creditScore',
+  profilePicture: 'profilePicture'
 };
 
 exports.Prisma.DocumentScalarFieldEnum = {

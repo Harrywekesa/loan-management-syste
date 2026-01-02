@@ -17,7 +17,13 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = verifyToken(token) as any;
+
+    interface JwtPayload {
+        id: string;
+        role: string;
+    }
+
+    const decoded = verifyToken(token) as JwtPayload | null;
 
     if (!decoded || !decoded.id) {
         return res.status(401).json({ message: 'Invalid token' });

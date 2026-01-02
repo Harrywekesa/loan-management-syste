@@ -25,6 +25,7 @@ export default function DashboardLayout() {
 
     const adminLinks = [
         { name: 'Overview', href: '/admin', icon: LayoutDashboard },
+        { name: 'Reports & Analytics', href: '/admin/reports', icon: FileText },
         { name: 'Loan Requests', href: '/admin/loans', icon: FileText },
         { name: 'Products', href: '/admin/products', icon: Settings },
         { name: 'Document Review', href: '/admin/documents', icon: FileText },
@@ -36,8 +37,8 @@ export default function DashboardLayout() {
     const links = user?.role === 'BORROWER' ? borrowerLinks : adminLinks;
 
     const SidebarContent = () => (
-        <div className="flex flex-col h-full">
-            <div className="p-6 border-b border-gray-100 flex flex-col items-center text-center">
+        <div className="flex flex-col h-full bg-card text-card-foreground border-r border-border">
+            <div className="p-6 border-b border-border flex flex-col items-center text-center">
                 {passportPhoto ? (
                     <img
                         src={`${serverURL}${passportPhoto.url}`}
@@ -54,7 +55,7 @@ export default function DashboardLayout() {
                 </h2>
                 <span className="text-xs text-gray-500 uppercase tracking-wider mt-1">{user?.role}</span>
             </div>
-            <div className="mt-4 text-center pb-4 border-b border-gray-50">
+            <div className="mt-4 text-center pb-4 border-b border-border">
                 <h1 className="text-xl font-bold" style={{ color: themeColor }}>{siteName}</h1>
             </div>
             <nav className="mt-6 px-4 space-y-2 flex-1 overflow-y-auto">
@@ -68,8 +69,8 @@ export default function DashboardLayout() {
                             className={cn(
                                 "flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors",
                                 location.pathname === link.href
-                                    ? "bg-indigo-50 text-indigo-700 dark:bg-gray-700 dark:text-white"
-                                    : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700"
+                                    ? "bg-primary/10 text-primary"
+                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                             )}
                         >
                             <Icon className="mr-3 h-5 w-5" />
@@ -91,27 +92,27 @@ export default function DashboardLayout() {
     );
 
     return (
-        <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="flex h-screen bg-background text-foreground">
             {/* Static Sidebar for Desktop */}
-            <div className="w-64 bg-white shadow-md dark:bg-gray-800 hidden md:block">
+            <div className="w-64 hidden md:block">
                 <SidebarContent />
             </div>
 
             {/* Mobile Sidebar */}
             <div className={cn("fixed inset-0 z-40 md:hidden", { "block": isSidebarOpen, "hidden": !isSidebarOpen })}>
                 {/* Overlay */}
-                <div className="absolute inset-0 bg-black opacity-50" onClick={() => setIsSidebarOpen(false)}></div>
+                <div className="absolute inset-0 bg-black/50" onClick={() => setIsSidebarOpen(false)}></div>
                 {/* Sidebar */}
-                <div className="relative w-64 bg-white shadow-md dark:bg-gray-800 h-full">
+                <div className="relative w-64 h-full">
                     <SidebarContent />
                 </div>
             </div>
 
             {/* Main Content */}
             <div className="flex-1 overflow-auto flex flex-col">
-                <header className="bg-white shadow dark:bg-gray-800 md:hidden">
+                <header className="bg-card border-b border-border md:hidden">
                     <div className="px-4 py-4 flex justify-between items-center">
-                        <button onClick={() => setIsSidebarOpen(true)} className="text-gray-600">
+                        <button onClick={() => setIsSidebarOpen(true)} className="text-foreground">
                             <Menu className="h-6 w-6" />
                         </button>
                         <span className="font-bold text-lg" style={{ color: themeColor }}>{siteName}</span>

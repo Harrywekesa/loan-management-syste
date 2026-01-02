@@ -68,6 +68,8 @@ model User {
 
   // Phase 6: Credit Scoring
   creditScore Int @default(50)
+
+  profilePicture String?
 }
 
 model Document {
@@ -135,9 +137,10 @@ model Loan {
   balance        Decimal // Remaining to pay
   accruedPenalty Decimal @default(0.00) // Track penalties separately
 
-  disbursedAt DateTime?
-  dueDate     DateTime?
-  status      LoanStatus @default(PENDING)
+  disbursedAt     DateTime?
+  dueDate         DateTime?
+  status          LoanStatus @default(PENDING)
+  rejectionReason String? // Reason if rejected
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

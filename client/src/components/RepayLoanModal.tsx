@@ -11,6 +11,7 @@ interface RepayLoanModalProps {
 
 const RepayLoanModal: React.FC<RepayLoanModalProps> = ({ isOpen, onClose, loan, onRepaymentSuccess }) => {
     const [amount, setAmount] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -36,7 +37,10 @@ const RepayLoanModal: React.FC<RepayLoanModalProps> = ({ isOpen, onClose, loan, 
                 return;
             }
 
-            await api.post(`/loans/${loan.id}/repay`, { amount: repaymentAmount });
+            await api.post(`/loans/${loan.id}/repay`, {
+                amount: repaymentAmount,
+                phoneNumber: phoneNumber || undefined
+            });
             onRepaymentSuccess();
             onClose();
         } catch (err: any) {
@@ -59,9 +63,22 @@ const RepayLoanModal: React.FC<RepayLoanModalProps> = ({ isOpen, onClose, loan, 
                         id="amount"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 bg-white placeholder-gray-400"
                         placeholder={`Loan Balance: ${loan.balance}`}
                     />
+                </div>
+
+                <div className="mb-4">
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700">M-Pesa Phone (Optional)</label>
+                    <input
+                        type="text"
+                        id="phone"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 bg-white placeholder-gray-400"
+                        placeholder="2547..."
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Leave blank to use registered phone.</p>
                 </div>
                 {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
                 <div className="flex justify-end">

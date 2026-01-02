@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
@@ -5,8 +6,9 @@ import { ArrowRight, Shield, Clock, Banknote } from 'lucide-react';
 import { serverURL } from '../lib/api';
 
 export default function LandingPage() {
-    const { siteName, themeColor, logoUrl } = useSettings();
+    const { siteName, themeColor, logoUrl, privacyPolicy, termsConditions } = useSettings();
     const { user } = useAuth();
+    const [legalModal, setLegalModal] = useState<{ title: string, content: string } | null>(null);
 
     return (
         <div className="min-h-screen flex flex-col bg-white">
@@ -90,8 +92,26 @@ export default function LandingPage() {
             <footer className="bg-gray-900 text-gray-400 py-12">
                 <div className="max-w-7xl mx-auto px-4 text-center">
                     <p>&copy; {new Date().getFullYear()} {siteName}. All rights reserved.</p>
+                    <div className="mt-4 space-x-4 text-sm">
+                        <button onClick={() => setLegalModal({ title: 'Privacy Policy', content: privacyPolicy || 'No content.' })} className="hover:text-white">Privacy Policy</button>
+                        <button onClick={() => setLegalModal({ title: 'Terms & Conditions', content: termsConditions || 'No content.' })} className="hover:text-white">Terms & Conditions</button>
+                    </div>
                 </div>
             </footer>
+
+            {legalModal && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+                        <div className="p-6 border-b flex justify-between items-center">
+                            <h2 className="text-xl font-bold text-gray-900">{legalModal.title}</h2>
+                            <button onClick={() => setLegalModal(null)} className="text-gray-400 hover:text-gray-600">&times;</button>
+                        </div>
+                        <div className="p-6 overflow-y-auto whitespace-pre-wrap text-gray-600">
+                            {legalModal.content}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

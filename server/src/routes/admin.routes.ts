@@ -11,7 +11,7 @@ import {
     getAuditLogs,
     uploadFile
 } from '../controllers/admin.controller';
-import { getSummaryReport, getTrends } from '../controllers/analytics.controller';
+import { getAdminSummary, getAnalyticsTrends } from '../controllers/analytics.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -30,7 +30,8 @@ router.patch('/users/:id/status', updateUserStatus);
 
 // System Settings
 router.get('/settings', getSettings);
-router.post('/settings', updateSettings);
+import { upload as settingsUpload } from '../middleware/upload.middleware';
+router.post('/settings', settingsUpload.single('logo'), updateSettings);
 router.get('/audit-logs', getAuditLogs);
 
 // Uploads

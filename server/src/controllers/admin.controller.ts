@@ -18,17 +18,17 @@ export const getAdminStats = async (req: Request, res: Response) => {
     try {
         const [users, loans, wallet] = await Promise.all([
             prisma.user.count(),
-            prisma.loan.count({ where: { status: 'PENDING' } }), // Pending Loans count
-            prisma.wallet.aggregate({ _sum: { balance: true } }) // Logic for system wallet placeholder
+            prisma.loan.count({ where: { status: 'PENDING' } }),
+            prisma.wallet.aggregate({ _sum: { balance: true } }),
+            prisma.systemSetting.findUnique({ where: { key: 'mpesa_liquidity' } })
         ]);
 
-        // In a real system, system wallet would be a specific account. 
-        // Here we might just sum all user balances or mock a system balance.
-        const systemBalance = 1000000;
+        // Use stored M-Pesa balance or fallback to mock/internal
+        const systemBalance = wallet[2]?.value ? parseFloat(wallet[2].value) : 1000000;
 
         res.json({
             users,
-            loans, // Pending loans
+            loans,
             walletBalance: systemBalance
         });
     } catch (error) {
@@ -194,8 +194,13 @@ export const getSettings = async (req: Request, res: Response) => {
 };
 
 export const updateSettings = async (req: Request, res: Response) => {
-    const settings = req.body; // Expects object { key: value }
+    const settings = { ...req.body }; // Copy body
     const adminId = (req.user as any).id;
+
+    // Handle Logo Upload
+    if (req.file) {
+        settings['logo_url'] = `/uploads/documents/${req.file.filename}`;
+    }
 
     try {
         await prisma.$transaction(async (tx) => {
@@ -235,7 +240,7 @@ export const getPublicSettings = async (req: Request, res: Response) => {
     try {
         const settings = await prisma.systemSetting.findMany({
             where: {
-                key: { in: ['site_name', 'theme_color', 'logo_url', 'contact_email'] }
+                key: { in: ['site_name', 'theme_color', 'logo_url', 'contact_email', 'privacy_policy', 'terms_conditions'] }
             }
         });
 

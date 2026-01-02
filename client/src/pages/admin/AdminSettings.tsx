@@ -14,6 +14,7 @@ export default function AdminSettings() {
     });
     const [logs, setLogs] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState('general');
+    const [logoDetails, setLogoDetails] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -27,10 +28,24 @@ export default function AdminSettings() {
     const handleSave = async () => {
         setLoading(true);
         try {
-            await api.post('/admin/settings', settings);
+            const formData = new FormData();
+            Object.keys(settings).forEach(key => formData.append(key, settings[key]));
+            if (logoDetails) {
+                formData.append('logo', logoDetails);
+            }
+
+            // We need to send FormData, so we change the content type
+            await api.post('/admin/settings', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
             alert('Settings saved!');
             fetchLogs(); // Refresh logs
+            // Also refresh settings to get new logo url if any
+            fetchSettings();
+            setLogoDetails(null);
         } catch (error) {
+            console.error(error);
             alert('Failed to save settings');
         } finally {
             setLoading(false);
@@ -41,27 +56,34 @@ export default function AdminSettings() {
         <div className="space-y-6">
             <h1 className="text-2xl font-bold">System Configuration</h1>
 
-            <div className="flex border-b">
-                <button className={`px-4 py-2 ${activeTab === 'general' ? 'border-b-2 border-indigo-600 font-bold' : ''}`} onClick={() => setActiveTab('general')}>General & Branding</button>
-                <button className={`px-4 py-2 ${activeTab === 'features' ? 'border-b-2 border-indigo-600 font-bold' : ''}`} onClick={() => setActiveTab('features')}>Features & Maintenance</button>
-                <button className={`px-4 py-2 ${activeTab === 'content' ? 'border-b-2 border-indigo-600 font-bold' : ''}`} onClick={() => setActiveTab('content')}>Legal & Content</button>
-                <button className={`px-4 py-2 ${activeTab === 'audits' ? 'border-b-2 border-indigo-600 font-bold' : ''}`} onClick={() => setActiveTab('audits')}>Audit Logs</button>
+            <div className="flex border-b border-border">
+                <button className={`px-4 py-2 ${activeTab === 'general' ? 'border-b-2 border-primary font-bold text-primary' : 'text-muted-foreground hover:text-foreground'}`} onClick={() => setActiveTab('general')}>General & Branding</button>
+                <button className={`px-4 py-2 ${activeTab === 'features' ? 'border-b-2 border-primary font-bold text-primary' : 'text-muted-foreground hover:text-foreground'}`} onClick={() => setActiveTab('features')}>Features & Maintenance</button>
+                <button className={`px-4 py-2 ${activeTab === 'content' ? 'border-b-2 border-primary font-bold text-primary' : 'text-muted-foreground hover:text-foreground'}`} onClick={() => setActiveTab('content')}>Legal & Content</button>
+                <button className={`px-4 py-2 ${activeTab === 'audits' ? 'border-b-2 border-primary font-bold text-primary' : 'text-muted-foreground hover:text-foreground'}`} onClick={() => setActiveTab('audits')}>Audit Logs</button>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow">
+            <div className="bg-card text-card-foreground p-6 rounded-lg shadow border border-border">
                 {activeTab === 'general' && (
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium">Site Name</label>
-                            <input type="text" className="w-full border p-2 rounded" value={settings.site_name} onChange={e => setSettings({ ...settings, site_name: e.target.value })} />
+                            <input type="text" className="w-full border border-input bg-background text-foreground p-2 rounded" value={settings.site_name} onChange={e => setSettings({ ...settings, site_name: e.target.value })} />
                         </div>
                         <div>
                             <label className="block text-sm font-medium">Theme Color</label>
-                            <input type="color" className="w-full h-10 p-1 border rounded" value={settings.theme_color} onChange={e => setSettings({ ...settings, theme_color: e.target.value })} />
+                            <input type="color" className="w-full h-10 p-1 border border-input bg-background rounded" value={settings.theme_color} onChange={e => setSettings({ ...settings, theme_color: e.target.value })} />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Logo URL</label>
-                            <input type="text" className="w-full border p-2 rounded" value={settings.logo_url || ''} onChange={e => setSettings({ ...settings, logo_url: e.target.value })} />
+                            <label className="block text-sm font-medium">Logo (Upload New)</label>
+                            <input type="file" accept="image/*" onChange={(e) => {
+                                if (e.target.files?.[0]) {
+                                    // We need to handle this differently since we are uploading on Save
+                                    // Let's store it in a separate state
+                                    setLogoDetails(e.target.files[0]);
+                                }
+                            }} className="w-full border border-input bg-background text-foreground p-2 rounded" />
+                            {settings.logo_url && <p className="text-xs text-muted-foreground mt-1">Current: {settings.logo_url}</p>}
                         </div>
                     </div>
                 )}
@@ -76,7 +98,7 @@ export default function AdminSettings() {
                             <span>Allow Registration</span>
                             <input type="checkbox" className="h-5 w-5" checked={settings.allow_registration === 'true'} onChange={e => setSettings({ ...settings, allow_registration: String(e.target.checked) })} />
                         </div>
-                        <div className="flex items-center justify-between border p-4 rounded">
+                        <div className="flex items-center justify-between border border-border p-4 rounded bg-muted/20">
                             <span>Allow Loan Applications</span>
                             <input type="checkbox" className="h-5 w-5" checked={settings.allow_loans === 'true'} onChange={e => setSettings({ ...settings, allow_loans: String(e.target.checked) })} />
                         </div>
@@ -87,15 +109,15 @@ export default function AdminSettings() {
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium">Contact Email</label>
-                            <input type="email" className="w-full border p-2 rounded" value={settings.contact_email} onChange={e => setSettings({ ...settings, contact_email: e.target.value })} />
+                            <input type="email" className="w-full border border-input bg-background text-foreground p-2 rounded" value={settings.contact_email} onChange={e => setSettings({ ...settings, contact_email: e.target.value })} />
                         </div>
                         <div>
                             <label className="block text-sm font-medium">Terms & Conditions</label>
-                            <textarea className="w-full border p-2 rounded h-32" value={settings.terms_conditions} onChange={e => setSettings({ ...settings, terms_conditions: e.target.value })} />
+                            <textarea className="w-full border border-input bg-background text-foreground p-2 rounded h-32" value={settings.terms_conditions} onChange={e => setSettings({ ...settings, terms_conditions: e.target.value })} />
                         </div>
                         <div>
                             <label className="block text-sm font-medium">Privacy Policy</label>
-                            <textarea className="w-full border p-2 rounded h-32" value={settings.privacy_policy} onChange={e => setSettings({ ...settings, privacy_policy: e.target.value })} />
+                            <textarea className="w-full border border-input bg-background text-foreground p-2 rounded h-32" value={settings.privacy_policy} onChange={e => setSettings({ ...settings, privacy_policy: e.target.value })} />
                         </div>
                     </div>
                 )}
@@ -103,7 +125,7 @@ export default function AdminSettings() {
                 {activeTab === 'audits' && (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-50 text-gray-500">
+                            <thead className="bg-muted/50 text-muted-foreground">
                                 <tr>
                                     <th className="px-4 py-2">Date</th>
                                     <th className="px-4 py-2">Admin</th>
@@ -128,7 +150,7 @@ export default function AdminSettings() {
 
                 {activeTab !== 'audits' && (
                     <div className="mt-6">
-                        <button onClick={handleSave} disabled={loading} className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 disabled:opacity-50">
+                        <button onClick={handleSave} disabled={loading} className="bg-primary text-primary-foreground px-6 py-2 rounded hover:opacity-90 disabled:opacity-50">
                             {loading ? 'Saving...' : 'Save Settings'}
                         </button>
                     </div>

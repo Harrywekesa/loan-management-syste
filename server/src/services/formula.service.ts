@@ -1,10 +1,20 @@
 export class FormulaService {
+    private static toCents(amount: number): number {
+        return Math.round(amount * 100);
+    }
+
+    private static fromCents(cents: number): number {
+        return Number((cents / 100).toFixed(2));
+    }
+
     /**
      * Calculates the interest amount based on Principal and Rate.
      * Currently implements Flat Rate method.
      */
     static calculateInterest(principal: number, rate: number): number {
-        return Number((principal * (rate / 100)).toFixed(2));
+        const principalCents = this.toCents(principal);
+        const interestCents = Math.round(principalCents * (rate / 100));
+        return this.fromCents(interestCents);
     }
 
     /**
@@ -15,7 +25,9 @@ export class FormulaService {
         if (isFixed) {
             return Number(fee.toFixed(2));
         }
-        return Number((principal * (fee / 100)).toFixed(2));
+        const principalCents = this.toCents(principal);
+        const feeCents = Math.round(principalCents * (fee / 100));
+        return this.fromCents(feeCents);
     }
 
     /**
@@ -23,7 +35,9 @@ export class FormulaService {
      * Total = Principal + Interest
      */
     static calculateTotalRepayable(principal: number, interest: number): number {
-        return Number((principal + interest).toFixed(2));
+        const principalCents = this.toCents(principal);
+        const interestCents = this.toCents(interest);
+        return this.fromCents(principalCents + interestCents);
     }
 
     /**
@@ -31,14 +45,18 @@ export class FormulaService {
      * Credit = Principal - Processing Fee
      */
     static calculateWalletCredit(principal: number, fee: number): number {
-        return Number((principal - fee).toFixed(2));
+        const principalCents = this.toCents(principal);
+        const feeCents = this.toCents(fee);
+        return this.fromCents(principalCents - feeCents);
     }
 
     /**
      * Calculates the daily penalty amount on the remaining balance.
      */
     static calculatePenalty(balance: number, penaltyRate: number): number {
-        return Number((balance * (penaltyRate / 100)).toFixed(2));
+        const balanceCents = this.toCents(balance);
+        const penaltyCents = Math.round(balanceCents * (penaltyRate / 100));
+        return this.fromCents(penaltyCents);
     }
 
     /**

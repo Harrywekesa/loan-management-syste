@@ -33,48 +33,41 @@ export const repayLoan = async (req: any, res: Response) => {
             const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
             const finalPhone = phoneNumber || user.phoneNumber || '254700000000';
 
-            // 1. Simulate M-Pesa 
-            const mpesaRes = await MpesaService.initiateSTKPush(finalPhone, amount, `REPAY-${loan.id}`);
-            if (mpesaRes.ResponseCode !== '0') throw new Error('M-Pesa payment failed');
+            // 1. Initiate M-Pesa STK Push
+            // Use a unique reference. We use 'LOAN-{loanId}-{timestamp}' to track it.
+            const timestamp = Date.now();
+            const reference = `LOAN-${loan.id}-${timestamp}`;
 
-            // 2. Update Loan Balance
-            const newBalance = Number((currentBalance - amount).toFixed(2));
-            const isFullyPaid = newBalance <= 0;
+            // Create Transaction Record First (PENDING)
+            const wallet = await tx.wallet.findUniqueOrThrow({ where: { userId } });
 
-            await tx.loan.update({
-                where: { id },
+            const transaction = await tx.transaction.create({
                 data: {
-                    balance: newBalance,
-                    status: isFullyPaid ? 'PAID' : loan.status // Keep ACTIVE or DEFAULTED if not fully paid
+                    walletId: wallet.id,
+                    type: 'REPAYMENT',
+                    amount: amount,
+                    description: `Loan Repayment: ${loan.id}`,
+                    status: 'PENDING'
                 }
             });
 
-            // 3. Log Transaction
-            const wallet = await tx.wallet.findUnique({ where: { userId } });
-            if (wallet) {
-                await tx.transaction.create({
-                    data: {
-                        walletId: wallet.id,
-                        type: 'REPAYMENT',
-                        amount: amount,
-                        description: `Loan Repayment: ${loan.id}`,
-                        status: 'COMPLETED'
-                    }
-                });
+            // Note: M-Pesa STK Push is synchronous in initiation but asynchronous in completion.
+            // We await the initiation response. If successful, we notify user to check phone.
+            // The actual balance update happens in the Callback Controller.
+            const mpesaRes = await MpesaService.initiateSTKPush(finalPhone, amount, reference);
+
+            if (mpesaRes.ResponseCode !== '0') {
+                throw new Error('M-Pesa payment request failed');
             }
 
-            // 4. Handle Full Repayment Events
-            if (isFullyPaid) {
-                // Update Credit Score only if it was not defaulted
-                if (loan.status !== 'DEFAULTED') {
-                    await CreditScoreService.updateScore(userId, CreditScoreRules.ON_TIME_REPAYMENT);
-                }
-            }
+            // We do NOT update the loan balance here. 
+            // The M-Pesa Callback will handle updates upon receiving success from Safaricom.
         });
 
-        res.json({ message: 'Repayment processed successfully', amount });
+        res.json({ message: 'Payment request sent to your phone. Please enter PIN to complete transaction.' });
     } catch (error: any) {
-        res.status(400).json({ message: error.message || 'Repayment failed' });
+        console.error("Repayment Error:", error);
+        res.status(400).json({ message: error.message || 'Repayment initiation failed' });
     }
 };
 
@@ -171,13 +164,23 @@ export const applyLoan = async (req: any, res: Response) => {
 
         // 1. Check if user is verified
         const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (user?.status !== 'VERIFIED') return res.status(400).json({ message: 'User not verified' });
+        if (user?.status !== 'VERIFIED') {
+            return res.status(400).json({
+                message: 'User account is not verified.',
+                rejectionReason: 'USER_NOT_VERIFIED'
+            });
+        }
 
         // 2. Get Product
         const product = await prisma.loanProduct.findUnique({ where: { id: productId } });
-        if (!product) return res.status(404).json({ message: 'Product not found' });
+        if (!product) {
+            return res.status(404).json({
+                message: 'The selected loan product could not be found.',
+                rejectionReason: 'PRODUCT_NOT_FOUND'
+            });
+        }
 
-        // NEW: Check for Existing Active Loans
+        // 3. Check for Existing Active Loans
         const activeLoan = await prisma.loan.findFirst({
             where: {
                 userId,
@@ -188,24 +191,26 @@ export const applyLoan = async (req: any, res: Response) => {
 
         if (activeLoan) {
             return res.status(400).json({
-                message: 'You already have an active or pending loan. Please repay it first.'
+                message: 'You already have an active or pending loan. Please repay it first to apply for a new one.',
+                rejectionReason: 'EXISTING_ACTIVE_LOAN'
             });
         }
 
-        // NEW: Check Credit Score Eligibility
+        // 4. Check Credit Score Eligibility
         if (user.creditScore < product.minCreditScore) {
             return res.status(400).json({
-                message: `Insufficient Credit Score. Required: ${product.minCreditScore}, Yours: ${user.creditScore}`
+                message: `Your credit score of ${user.creditScore} is below the required minimum of ${product.minCreditScore} for this loan product.`,
+                rejectionReason: 'INSUFFICIENT_CREDIT_SCORE'
             });
         }
 
-        // 3. Calculate
+        // 5. Calculate Loan Details
         const principal = Number(amount);
         const fee = FormulaService.calculateProcessingFee(principal, Number(product.processingFee), product.isFeeFixed);
         const interest = FormulaService.calculateInterest(principal, Number(product.interestRate));
         const total = FormulaService.calculateTotalRepayable(principal, interest);
 
-        // 4. Create Loan (Pending)
+        // 6. Create Loan (Pending)
         const loan = await prisma.loan.create({
             data: {
                 userId,
@@ -221,7 +226,10 @@ export const applyLoan = async (req: any, res: Response) => {
 
         res.status(201).json(loan);
     } catch (error: any) {
-        res.status(400).json({ message: error.message || 'Application failed' });
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ message: 'Invalid application data', details: error.errors });
+        }
+        res.status(500).json({ message: error.message || 'An unexpected error occurred during the loan application process.' });
     }
 };
 
