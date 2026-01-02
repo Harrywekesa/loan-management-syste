@@ -7,7 +7,8 @@ import loanRoutes from './routes/loan.routes';
 import walletRoutes from './routes/wallet.routes';
 import adminRoutes from './routes/admin.routes';
 import documentRoutes from './routes/document.routes';
-import analyticsRoutes from './routes/analytics.routes'; // New Import
+import analyticsRoutes from './routes/analytics.routes';
+import mpesaRoutes from './routes/mpesa.routes'; // Import
 
 const app: Express = express();
 
@@ -38,7 +39,8 @@ app.use('/api/loans', loanRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/documents', documentRoutes);
-app.use('/api/analytics', analyticsRoutes); // Mount analytics routes
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/callbacks/mpesa', mpesaRoutes); // Register
 app.use('/uploads', express.static('uploads')); // Serve uploaded files statically
 
 app.get('/health', (req: Request, res: Response) => {

@@ -11,7 +11,7 @@ import {
     getAuditLogs,
     uploadFile
 } from '../controllers/admin.controller';
-import { getSummaryReport, getTrends } from '../controllers/analytics.controller';
+import { getAdminSummary, getAnalyticsTrends } from '../controllers/analytics.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 
 const router = Router();

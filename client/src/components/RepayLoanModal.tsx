@@ -63,7 +63,7 @@ const RepayLoanModal: React.FC<RepayLoanModalProps> = ({ isOpen, onClose, loan, 
                         id="amount"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 bg-white placeholder-gray-400"
                         placeholder={`Loan Balance: ${loan.balance}`}
                     />
                 </div>
@@ -75,7 +75,7 @@ const RepayLoanModal: React.FC<RepayLoanModalProps> = ({ isOpen, onClose, loan, 
                         id="phone"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 bg-white placeholder-gray-400"
                         placeholder="2547..."
                     />
                     <p className="text-xs text-gray-500 mt-1">Leave blank to use registered phone.</p>

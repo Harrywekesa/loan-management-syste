@@ -33,48 +33,41 @@ export const repayLoan = async (req: any, res: Response) => {
             const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
             const finalPhone = phoneNumber || user.phoneNumber || '254700000000';
 
-            // 1. Simulate M-Pesa 
-            const mpesaRes = await MpesaService.initiateSTKPush(finalPhone, amount, `REPAY-${loan.id}`);
-            if (mpesaRes.ResponseCode !== '0') throw new Error('M-Pesa payment failed');
+            // 1. Initiate M-Pesa STK Push
+            // Use a unique reference. We use 'LOAN-{loanId}-{timestamp}' to track it.
+            const timestamp = Date.now();
+            const reference = `LOAN-${loan.id}-${timestamp}`;
 
-            // 2. Update Loan Balance
-            const newBalance = Number((currentBalance - amount).toFixed(2));
-            const isFullyPaid = newBalance <= 0;
+            // Create Transaction Record First (PENDING)
+            const wallet = await tx.wallet.findUniqueOrThrow({ where: { userId } });
 
-            await tx.loan.update({
-                where: { id },
+            const transaction = await tx.transaction.create({
                 data: {
-                    balance: newBalance,
-                    status: isFullyPaid ? 'PAID' : loan.status // Keep ACTIVE or DEFAULTED if not fully paid
+                    walletId: wallet.id,
+                    type: 'REPAYMENT',
+                    amount: amount,
+                    description: `Loan Repayment: ${loan.id}`,
+                    status: 'PENDING'
                 }
             });
 
-            // 3. Log Transaction
-            const wallet = await tx.wallet.findUnique({ where: { userId } });
-            if (wallet) {
-                await tx.transaction.create({
-                    data: {
-                        walletId: wallet.id,
-                        type: 'REPAYMENT',
-                        amount: amount,
-                        description: `Loan Repayment: ${loan.id}`,
-                        status: 'COMPLETED'
-                    }
-                });
+            // Note: M-Pesa STK Push is synchronous in initiation but asynchronous in completion.
+            // We await the initiation response. If successful, we notify user to check phone.
+            // The actual balance update happens in the Callback Controller.
+            const mpesaRes = await MpesaService.initiateSTKPush(finalPhone, amount, reference);
+
+            if (mpesaRes.ResponseCode !== '0') {
+                throw new Error('M-Pesa payment request failed');
             }
 
-            // 4. Handle Full Repayment Events
-            if (isFullyPaid) {
-                // Update Credit Score only if it was not defaulted
-                if (loan.status !== 'DEFAULTED') {
-                    await CreditScoreService.updateScore(userId, CreditScoreRules.ON_TIME_REPAYMENT);
-                }
-            }
+            // We do NOT update the loan balance here. 
+            // The M-Pesa Callback will handle updates upon receiving success from Safaricom.
         });
 
-        res.json({ message: 'Repayment processed successfully', amount });
+        res.json({ message: 'Payment request sent to your phone. Please enter PIN to complete transaction.' });
     } catch (error: any) {
-        res.status(400).json({ message: error.message || 'Repayment failed' });
+        console.error("Repayment Error:", error);
+        res.status(400).json({ message: error.message || 'Repayment initiation failed' });
     }
 };
 
