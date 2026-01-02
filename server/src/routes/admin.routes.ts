@@ -30,7 +30,8 @@ router.patch('/users/:id/status', updateUserStatus);
 
 // System Settings
 router.get('/settings', getSettings);
-router.post('/settings', updateSettings);
+import { upload as settingsUpload } from '../middleware/upload.middleware';
+router.post('/settings', settingsUpload.single('logo'), updateSettings);
 router.get('/audit-logs', getAuditLogs);
 
 // Uploads

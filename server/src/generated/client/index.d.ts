@@ -1659,6 +1659,7 @@ export namespace Prisma {
     verificationToken: string | null
     verificationTokenExpiry: Date | null
     creditScore: number | null
+    profilePicture: string | null
   }
 
   export type UserMaxAggregateOutputType = {
@@ -1679,6 +1680,7 @@ export namespace Prisma {
     verificationToken: string | null
     verificationTokenExpiry: Date | null
     creditScore: number | null
+    profilePicture: string | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -1699,6 +1701,7 @@ export namespace Prisma {
     verificationToken: number
     verificationTokenExpiry: number
     creditScore: number
+    profilePicture: number
     _all: number
   }
 
@@ -1729,6 +1732,7 @@ export namespace Prisma {
     verificationToken?: true
     verificationTokenExpiry?: true
     creditScore?: true
+    profilePicture?: true
   }
 
   export type UserMaxAggregateInputType = {
@@ -1749,6 +1753,7 @@ export namespace Prisma {
     verificationToken?: true
     verificationTokenExpiry?: true
     creditScore?: true
+    profilePicture?: true
   }
 
   export type UserCountAggregateInputType = {
@@ -1769,6 +1774,7 @@ export namespace Prisma {
     verificationToken?: true
     verificationTokenExpiry?: true
     creditScore?: true
+    profilePicture?: true
     _all?: true
   }
 
@@ -1876,6 +1882,7 @@ export namespace Prisma {
     verificationToken: string | null
     verificationTokenExpiry: Date | null
     creditScore: number
+    profilePicture: string | null
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
@@ -1915,6 +1922,7 @@ export namespace Prisma {
     verificationToken?: boolean
     verificationTokenExpiry?: boolean
     creditScore?: boolean
+    profilePicture?: boolean
     wallet?: boolean | User$walletArgs<ExtArgs>
     loans?: boolean | User$loansArgs<ExtArgs>
     documents?: boolean | User$documentsArgs<ExtArgs>
@@ -1940,6 +1948,7 @@ export namespace Prisma {
     verificationToken?: boolean
     verificationTokenExpiry?: boolean
     creditScore?: boolean
+    profilePicture?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
@@ -1960,6 +1969,7 @@ export namespace Prisma {
     verificationToken?: boolean
     verificationTokenExpiry?: boolean
     creditScore?: boolean
+    profilePicture?: boolean
   }
 
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1997,6 +2007,7 @@ export namespace Prisma {
       verificationToken: string | null
       verificationTokenExpiry: Date | null
       creditScore: number
+      profilePicture: string | null
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -2411,6 +2422,7 @@ export namespace Prisma {
     readonly verificationToken: FieldRef<"User", 'String'>
     readonly verificationTokenExpiry: FieldRef<"User", 'DateTime'>
     readonly creditScore: FieldRef<"User", 'Int'>
+    readonly profilePicture: FieldRef<"User", 'String'>
   }
     
 
@@ -9824,7 +9836,8 @@ export namespace Prisma {
     emailVerified: 'emailVerified',
     verificationToken: 'verificationToken',
     verificationTokenExpiry: 'verificationTokenExpiry',
-    creditScore: 'creditScore'
+    creditScore: 'creditScore',
+    profilePicture: 'profilePicture'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -10116,6 +10129,7 @@ export namespace Prisma {
     verificationToken?: StringNullableFilter<"User"> | string | null
     verificationTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     creditScore?: IntFilter<"User"> | number
+    profilePicture?: StringNullableFilter<"User"> | string | null
     wallet?: XOR<WalletNullableRelationFilter, WalletWhereInput> | null
     loans?: LoanListRelationFilter
     documents?: DocumentListRelationFilter
@@ -10140,6 +10154,7 @@ export namespace Prisma {
     verificationToken?: SortOrderInput | SortOrder
     verificationTokenExpiry?: SortOrderInput | SortOrder
     creditScore?: SortOrder
+    profilePicture?: SortOrderInput | SortOrder
     wallet?: WalletOrderByWithRelationInput
     loans?: LoanOrderByRelationAggregateInput
     documents?: DocumentOrderByRelationAggregateInput
@@ -10167,6 +10182,7 @@ export namespace Prisma {
     verificationToken?: StringNullableFilter<"User"> | string | null
     verificationTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     creditScore?: IntFilter<"User"> | number
+    profilePicture?: StringNullableFilter<"User"> | string | null
     wallet?: XOR<WalletNullableRelationFilter, WalletWhereInput> | null
     loans?: LoanListRelationFilter
     documents?: DocumentListRelationFilter
@@ -10191,6 +10207,7 @@ export namespace Prisma {
     verificationToken?: SortOrderInput | SortOrder
     verificationTokenExpiry?: SortOrderInput | SortOrder
     creditScore?: SortOrder
+    profilePicture?: SortOrderInput | SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -10219,6 +10236,7 @@ export namespace Prisma {
     verificationToken?: StringNullableWithAggregatesFilter<"User"> | string | null
     verificationTokenExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     creditScore?: IntWithAggregatesFilter<"User"> | number
+    profilePicture?: StringNullableWithAggregatesFilter<"User"> | string | null
   }
 
   export type DocumentWhereInput = {
@@ -10750,6 +10768,7 @@ export namespace Prisma {
     verificationToken?: string | null
     verificationTokenExpiry?: Date | string | null
     creditScore?: number
+    profilePicture?: string | null
     wallet?: WalletCreateNestedOneWithoutUserInput
     loans?: LoanCreateNestedManyWithoutUserInput
     documents?: DocumentCreateNestedManyWithoutUserInput
@@ -10774,6 +10793,7 @@ export namespace Prisma {
     verificationToken?: string | null
     verificationTokenExpiry?: Date | string | null
     creditScore?: number
+    profilePicture?: string | null
     wallet?: WalletUncheckedCreateNestedOneWithoutUserInput
     loans?: LoanUncheckedCreateNestedManyWithoutUserInput
     documents?: DocumentUncheckedCreateNestedManyWithoutUserInput
@@ -10798,6 +10818,7 @@ export namespace Prisma {
     verificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     verificationTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     creditScore?: IntFieldUpdateOperationsInput | number
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
     wallet?: WalletUpdateOneWithoutUserNestedInput
     loans?: LoanUpdateManyWithoutUserNestedInput
     documents?: DocumentUpdateManyWithoutUserNestedInput
@@ -10822,6 +10843,7 @@ export namespace Prisma {
     verificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     verificationTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     creditScore?: IntFieldUpdateOperationsInput | number
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
     wallet?: WalletUncheckedUpdateOneWithoutUserNestedInput
     loans?: LoanUncheckedUpdateManyWithoutUserNestedInput
     documents?: DocumentUncheckedUpdateManyWithoutUserNestedInput
@@ -10846,6 +10868,7 @@ export namespace Prisma {
     verificationToken?: string | null
     verificationTokenExpiry?: Date | string | null
     creditScore?: number
+    profilePicture?: string | null
   }
 
   export type UserUpdateManyMutationInput = {
@@ -10866,6 +10889,7 @@ export namespace Prisma {
     verificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     verificationTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     creditScore?: IntFieldUpdateOperationsInput | number
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type UserUncheckedUpdateManyInput = {
@@ -10886,6 +10910,7 @@ export namespace Prisma {
     verificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     verificationTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     creditScore?: IntFieldUpdateOperationsInput | number
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type DocumentCreateInput = {
@@ -11583,6 +11608,7 @@ export namespace Prisma {
     verificationToken?: SortOrder
     verificationTokenExpiry?: SortOrder
     creditScore?: SortOrder
+    profilePicture?: SortOrder
   }
 
   export type UserAvgOrderByAggregateInput = {
@@ -11607,6 +11633,7 @@ export namespace Prisma {
     verificationToken?: SortOrder
     verificationTokenExpiry?: SortOrder
     creditScore?: SortOrder
+    profilePicture?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
@@ -11627,6 +11654,7 @@ export namespace Prisma {
     verificationToken?: SortOrder
     verificationTokenExpiry?: SortOrder
     creditScore?: SortOrder
+    profilePicture?: SortOrder
   }
 
   export type UserSumOrderByAggregateInput = {
@@ -13020,6 +13048,7 @@ export namespace Prisma {
     verificationToken?: string | null
     verificationTokenExpiry?: Date | string | null
     creditScore?: number
+    profilePicture?: string | null
     wallet?: WalletCreateNestedOneWithoutUserInput
     loans?: LoanCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutActorInput
@@ -13043,6 +13072,7 @@ export namespace Prisma {
     verificationToken?: string | null
     verificationTokenExpiry?: Date | string | null
     creditScore?: number
+    profilePicture?: string | null
     wallet?: WalletUncheckedCreateNestedOneWithoutUserInput
     loans?: LoanUncheckedCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
@@ -13082,6 +13112,7 @@ export namespace Prisma {
     verificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     verificationTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     creditScore?: IntFieldUpdateOperationsInput | number
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
     wallet?: WalletUpdateOneWithoutUserNestedInput
     loans?: LoanUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
@@ -13105,6 +13136,7 @@ export namespace Prisma {
     verificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     verificationTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     creditScore?: IntFieldUpdateOperationsInput | number
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
     wallet?: WalletUncheckedUpdateOneWithoutUserNestedInput
     loans?: LoanUncheckedUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
@@ -13128,6 +13160,7 @@ export namespace Prisma {
     verificationToken?: string | null
     verificationTokenExpiry?: Date | string | null
     creditScore?: number
+    profilePicture?: string | null
     loans?: LoanCreateNestedManyWithoutUserInput
     documents?: DocumentCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutActorInput
@@ -13151,6 +13184,7 @@ export namespace Prisma {
     verificationToken?: string | null
     verificationTokenExpiry?: Date | string | null
     creditScore?: number
+    profilePicture?: string | null
     loans?: LoanUncheckedCreateNestedManyWithoutUserInput
     documents?: DocumentUncheckedCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
@@ -13220,6 +13254,7 @@ export namespace Prisma {
     verificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     verificationTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     creditScore?: IntFieldUpdateOperationsInput | number
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
     loans?: LoanUpdateManyWithoutUserNestedInput
     documents?: DocumentUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
@@ -13243,6 +13278,7 @@ export namespace Prisma {
     verificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     verificationTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     creditScore?: IntFieldUpdateOperationsInput | number
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
     loans?: LoanUncheckedUpdateManyWithoutUserNestedInput
     documents?: DocumentUncheckedUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
@@ -13404,6 +13440,7 @@ export namespace Prisma {
     verificationToken?: string | null
     verificationTokenExpiry?: Date | string | null
     creditScore?: number
+    profilePicture?: string | null
     wallet?: WalletCreateNestedOneWithoutUserInput
     documents?: DocumentCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogCreateNestedManyWithoutActorInput
@@ -13427,6 +13464,7 @@ export namespace Prisma {
     verificationToken?: string | null
     verificationTokenExpiry?: Date | string | null
     creditScore?: number
+    profilePicture?: string | null
     wallet?: WalletUncheckedCreateNestedOneWithoutUserInput
     documents?: DocumentUncheckedCreateNestedManyWithoutUserInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutActorInput
@@ -13503,6 +13541,7 @@ export namespace Prisma {
     verificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     verificationTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     creditScore?: IntFieldUpdateOperationsInput | number
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
     wallet?: WalletUpdateOneWithoutUserNestedInput
     documents?: DocumentUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUpdateManyWithoutActorNestedInput
@@ -13526,6 +13565,7 @@ export namespace Prisma {
     verificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     verificationTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     creditScore?: IntFieldUpdateOperationsInput | number
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
     wallet?: WalletUncheckedUpdateOneWithoutUserNestedInput
     documents?: DocumentUncheckedUpdateManyWithoutUserNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutActorNestedInput
@@ -13592,6 +13632,7 @@ export namespace Prisma {
     verificationToken?: string | null
     verificationTokenExpiry?: Date | string | null
     creditScore?: number
+    profilePicture?: string | null
     wallet?: WalletCreateNestedOneWithoutUserInput
     loans?: LoanCreateNestedManyWithoutUserInput
     documents?: DocumentCreateNestedManyWithoutUserInput
@@ -13615,6 +13656,7 @@ export namespace Prisma {
     verificationToken?: string | null
     verificationTokenExpiry?: Date | string | null
     creditScore?: number
+    profilePicture?: string | null
     wallet?: WalletUncheckedCreateNestedOneWithoutUserInput
     loans?: LoanUncheckedCreateNestedManyWithoutUserInput
     documents?: DocumentUncheckedCreateNestedManyWithoutUserInput
@@ -13654,6 +13696,7 @@ export namespace Prisma {
     verificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     verificationTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     creditScore?: IntFieldUpdateOperationsInput | number
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
     wallet?: WalletUpdateOneWithoutUserNestedInput
     loans?: LoanUpdateManyWithoutUserNestedInput
     documents?: DocumentUpdateManyWithoutUserNestedInput
@@ -13677,6 +13720,7 @@ export namespace Prisma {
     verificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     verificationTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     creditScore?: IntFieldUpdateOperationsInput | number
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
     wallet?: WalletUncheckedUpdateOneWithoutUserNestedInput
     loans?: LoanUncheckedUpdateManyWithoutUserNestedInput
     documents?: DocumentUncheckedUpdateManyWithoutUserNestedInput

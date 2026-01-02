@@ -68,6 +68,8 @@ model User {
 
   // Phase 6: Credit Scoring
   creditScore Int @default(50)
+
+  profilePicture String?
 }
 
 model Document {

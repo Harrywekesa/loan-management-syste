@@ -194,8 +194,13 @@ export const getSettings = async (req: Request, res: Response) => {
 };
 
 export const updateSettings = async (req: Request, res: Response) => {
-    const settings = req.body; // Expects object { key: value }
+    const settings = { ...req.body }; // Copy body
     const adminId = (req.user as any).id;
+
+    // Handle Logo Upload
+    if (req.file) {
+        settings['logo_url'] = `/uploads/documents/${req.file.filename}`;
+    }
 
     try {
         await prisma.$transaction(async (tx) => {
@@ -235,7 +240,7 @@ export const getPublicSettings = async (req: Request, res: Response) => {
     try {
         const settings = await prisma.systemSetting.findMany({
             where: {
-                key: { in: ['site_name', 'theme_color', 'logo_url', 'contact_email'] }
+                key: { in: ['site_name', 'theme_color', 'logo_url', 'contact_email', 'privacy_policy', 'terms_conditions'] }
             }
         });
 

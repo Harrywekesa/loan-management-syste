@@ -171,13 +171,23 @@ export const applyLoan = async (req: any, res: Response) => {
 
         // 1. Check if user is verified
         const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (user?.status !== 'VERIFIED') return res.status(400).json({ message: 'User not verified' });
+        if (user?.status !== 'VERIFIED') {
+            return res.status(400).json({
+                message: 'User account is not verified.',
+                rejectionReason: 'USER_NOT_VERIFIED'
+            });
+        }
 
         // 2. Get Product
         const product = await prisma.loanProduct.findUnique({ where: { id: productId } });
-        if (!product) return res.status(404).json({ message: 'Product not found' });
+        if (!product) {
+            return res.status(404).json({
+                message: 'The selected loan product could not be found.',
+                rejectionReason: 'PRODUCT_NOT_FOUND'
+            });
+        }
 
-        // NEW: Check for Existing Active Loans
+        // 3. Check for Existing Active Loans
         const activeLoan = await prisma.loan.findFirst({
             where: {
                 userId,
@@ -188,24 +198,26 @@ export const applyLoan = async (req: any, res: Response) => {
 
         if (activeLoan) {
             return res.status(400).json({
-                message: 'You already have an active or pending loan. Please repay it first.'
+                message: 'You already have an active or pending loan. Please repay it first to apply for a new one.',
+                rejectionReason: 'EXISTING_ACTIVE_LOAN'
             });
         }
 
-        // NEW: Check Credit Score Eligibility
+        // 4. Check Credit Score Eligibility
         if (user.creditScore < product.minCreditScore) {
             return res.status(400).json({
-                message: `Insufficient Credit Score. Required: ${product.minCreditScore}, Yours: ${user.creditScore}`
+                message: `Your credit score of ${user.creditScore} is below the required minimum of ${product.minCreditScore} for this loan product.`,
+                rejectionReason: 'INSUFFICIENT_CREDIT_SCORE'
             });
         }
 
-        // 3. Calculate
+        // 5. Calculate Loan Details
         const principal = Number(amount);
         const fee = FormulaService.calculateProcessingFee(principal, Number(product.processingFee), product.isFeeFixed);
         const interest = FormulaService.calculateInterest(principal, Number(product.interestRate));
         const total = FormulaService.calculateTotalRepayable(principal, interest);
 
-        // 4. Create Loan (Pending)
+        // 6. Create Loan (Pending)
         const loan = await prisma.loan.create({
             data: {
                 userId,
@@ -221,7 +233,10 @@ export const applyLoan = async (req: any, res: Response) => {
 
         res.status(201).json(loan);
     } catch (error: any) {
-        res.status(400).json({ message: error.message || 'Application failed' });
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ message: 'Invalid application data', details: error.errors });
+        }
+        res.status(500).json({ message: error.message || 'An unexpected error occurred during the loan application process.' });
     }
 };
 

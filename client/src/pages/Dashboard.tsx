@@ -12,16 +12,30 @@ export default function Dashboard() {
     const [selectedLoan, setSelectedLoan] = useState<any>(null);
     const [isRepayModalOpen, setIsRepayModalOpen] = useState(false);
 
+    const [error, setError] = useState<string | null>(null);
+
     const fetchLoans = () => {
+        setError(null);
         api.get('/loans/my').then(res => {
             setLoans(res.data);
-            const balance = res.data.reduce((acc: number, loan: any) => acc + Number(loan.balance), 0);
+            const balance = res.data.reduce((acc: number, loan: any) => {
+                // Only sum up Active, Defaulted, or Pending (if debt exists)
+                // Exclude REJECTED and PAID
+                if (loan.status === 'REJECTED' || loan.status === 'PAID') return acc;
+                return acc + Number(loan.balance);
+            }, 0);
             setTotalLoanBalance(balance);
-        }).catch(console.error);
+        }).catch(err => {
+            console.error(err);
+            setError('Failed to load loans. Please try again later.');
+        });
     };
 
     useEffect(() => {
-        api.get('/wallet').then(res => setWallet(res.data)).catch(console.error);
+        api.get('/wallet').then(res => setWallet(res.data)).catch(err => {
+            console.error(err);
+            // Not setting main error here to avoid blocking loan view, but could be added
+        });
         fetchLoans();
     }, []);
 
@@ -42,31 +56,38 @@ export default function Dashboard() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">
-                <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
-                    <h3 className="text-sm font-medium text-gray-500">Active Loan Balance</h3>
-                    <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">KES {totalLoanBalance.toLocaleString()}</p>
+                <div className="rounded-xl bg-card text-card-foreground p-6 shadow-sm border border-border">
+                    <h3 className="text-sm font-medium text-muted-foreground">Active Loan Balance</h3>
+                    <p className="mt-2 text-3xl font-bold">KES {totalLoanBalance.toLocaleString()}</p>
                 </div>
-                <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
-                    <h3 className="text-sm font-medium text-gray-500">Wallet Balance</h3>
-                    <p className="mt-2 text-3xl font-bold text-green-600">KES {Number(wallet?.balance || 0).toLocaleString()}</p>
+                <div className="rounded-xl bg-card text-card-foreground p-6 shadow-sm border border-border">
+                    <h3 className="text-sm font-medium text-muted-foreground">Wallet Balance</h3>
+                    <p className="mt-2 text-3xl font-bold text-green-500">KES {Number(wallet?.balance || 0).toLocaleString()}</p>
                 </div>
 
                 {user?.role === 'BORROWER' && (
-                    <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
-                        <h3 className="text-sm font-medium text-gray-500">Credit Score</h3>
-                        <p className="mt-2 text-3xl font-bold text-indigo-600">{user?.creditScore || 50}</p>
+                    <div className="rounded-xl bg-card text-card-foreground p-6 shadow-sm border border-border">
+                        <h3 className="text-sm font-medium text-muted-foreground">Credit Score</h3>
+                        <p className="mt-2 text-3xl font-bold text-primary">{user?.creditScore || 50}</p>
                     </div>
                 )}
             </div>
 
-            <div className="rounded-xl bg-white shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Active Loans</h3>
-                    <Link to="/dashboard/apply" className="text-xs font-semibold text-white bg-indigo-600 px-3 py-1.5 rounded hover:bg-indigo-700">New Application</Link>
+            {error && (
+                <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6 border border-red-200">
+                    <p className="font-medium">Error loading data</p>
+                    <p>{error}</p>
+                </div>
+            )}
+
+            <div className="rounded-xl bg-card text-card-foreground shadow-sm border border-border overflow-hidden">
+                <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-muted/20">
+                    <h3 className="font-semibold">Active Loans</h3>
+                    <Link to="/dashboard/apply" className="text-xs font-semibold text-primary-foreground bg-primary px-3 py-1.5 rounded hover:opacity-90">New Application</Link>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-gray-50 text-gray-500 font-medium">
+                        <thead className="bg-muted/50 text-muted-foreground font-medium">
                             <tr>
                                 <th className="px-6 py-3">Product</th>
                                 <th className="px-6 py-3">Principal</th>
@@ -85,20 +106,25 @@ export default function Dashboard() {
                                     <td className="px-6 py-4 text-red-600">KES {Number(loan.accruedPenalty).toLocaleString()}</td>
                                     <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">KES {Number(loan.balance).toLocaleString()}</td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium 
-                      ${loan.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                                loan.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                                    loan.status === 'DEFAULTED' ? 'bg-red-100 text-red-800' :
-                                                        loan.status === 'REJECTED' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
-                                            {loan.status}
-                                        </span>
+                                        <div className="flex flex-col">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium w-max
+                          ${loan.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                                                    loan.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                                        loan.status === 'DEFAULTED' ? 'bg-red-100 text-red-800' :
+                                                            loan.status === 'REJECTED' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
+                                                {loan.status}
+                                            </span>
+                                            {loan.status === 'REJECTED' && loan.rejectionReason && (
+                                                <span className="text-xs text-red-600 mt-1 max-w-[150px]">{loan.rejectionReason}</span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4">{loan.dueDate ? new Date(loan.dueDate).toLocaleDateString() : '-'}</td>
-                                                                         <td className="px-6 py-4 text-right">
-                                                                            {loan.balance > 0 && !['PENDING', 'REJECTED'].includes(loan.status) && (
-                                                                                <button onClick={() => handleRepayClick(loan)} className="text-indigo-600 hover:text-indigo-900 font-semibold">Repay</button>
-                                                                            )}
-                                                                        </td>                                </tr>
+                                    <td className="px-6 py-4 text-right">
+                                        {loan.balance > 0 && !['PENDING', 'REJECTED'].includes(loan.status) && (
+                                            <button onClick={() => handleRepayClick(loan)} className="text-indigo-600 hover:text-indigo-900 font-semibold">Repay</button>
+                                        )}
+                                    </td>                                </tr>
                             ))}
                             {loans.length === 0 && (
                                 <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-500">No active loans found.</td></tr>
