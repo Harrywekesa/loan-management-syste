@@ -163,8 +163,50 @@ export const handleB2cResult = async (req: Request, res: Response) => {
     }
 };
 
+export const handleBalanceResult = async (req: Request, res: Response) => {
+    try {
+        console.log("Balance Result Received:", JSON.stringify(req.body, null, 2));
+
+        const result = req.body.Result;
+        if (result.ResultCode === 0) {
+            const params = result.ResultParameters.ResultParameter;
+            const balanceStr = params.find((p: any) => p.Key === "AccountBalance")?.Value;
+
+            if (balanceStr) {
+                // "Working Account|KES|1000.00|1000.00|0.00|0.00"
+                const parts = balanceStr.split('|');
+                let amount = 0;
+
+                // Try to find KES and take the next value
+                const currencyIndex = parts.indexOf('KES');
+                if (currencyIndex !== -1 && parts[currencyIndex + 1]) {
+                    amount = parseFloat(parts[currencyIndex + 1]);
+                } else {
+                    // Fallback Regex
+                    const match = balanceStr.match(/KES\|([0-9.]+)/);
+                    if (match) amount = parseFloat(match[1]);
+                }
+
+                console.log(`Updating System Liquidity to: ${amount}`);
+
+                await prisma.systemSetting.upsert({
+                    where: { key: 'mpesa_liquidity' },
+                    update: { value: amount.toString() },
+                    create: { key: 'mpesa_liquidity', value: amount.toString() }
+                });
+            }
+        } else {
+            console.error(`Balance Check Failed: ${result.ResultDesc}`);
+        }
+
+        res.json({ result: "acknowledged" });
+    } catch (error) {
+        console.error("Balance Callback Error:", error);
+        res.status(500).send("Error");
+    }
+};
+
 export const handleB2cTimeout = async (req: Request, res: Response) => {
-    console.log("B2C Timeout:", req.body);
-    // Treat as failure check later or manual intervention
+    console.log("B2C/Balance Timeout:", req.body);
     res.json({ result: "acknowledged" });
 };

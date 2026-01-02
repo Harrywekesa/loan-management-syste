@@ -61,7 +61,7 @@ export default function AdminDashboard() {
                     <p className="text-3xl font-bold mt-2">{stats.loans}</p>
                 </div>
                 <div className="bg-card text-card-foreground p-6 rounded-xl shadow-sm border border-border">
-                    <h3 className="text-muted-foreground text-sm font-medium">System Liquidity (Mock)</h3>
+                    <h3 className="text-muted-foreground text-sm font-medium">System Liquidity</h3>
                     <p className="text-3xl font-bold mt-2 text-green-500">KES {Number(stats.walletBalance).toLocaleString()}</p>
                 </div>
             </div>

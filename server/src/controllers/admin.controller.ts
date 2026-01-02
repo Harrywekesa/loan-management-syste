@@ -18,17 +18,17 @@ export const getAdminStats = async (req: Request, res: Response) => {
     try {
         const [users, loans, wallet] = await Promise.all([
             prisma.user.count(),
-            prisma.loan.count({ where: { status: 'PENDING' } }), // Pending Loans count
-            prisma.wallet.aggregate({ _sum: { balance: true } }) // Logic for system wallet placeholder
+            prisma.loan.count({ where: { status: 'PENDING' } }),
+            prisma.wallet.aggregate({ _sum: { balance: true } }),
+            prisma.systemSetting.findUnique({ where: { key: 'mpesa_liquidity' } })
         ]);
 
-        // In a real system, system wallet would be a specific account. 
-        // Here we might just sum all user balances or mock a system balance.
-        const systemBalance = 1000000;
+        // Use stored M-Pesa balance or fallback to mock/internal
+        const systemBalance = wallet[2]?.value ? parseFloat(wallet[2].value) : 1000000;
 
         res.json({
             users,
-            loans, // Pending loans
+            loans,
             walletBalance: systemBalance
         });
     } catch (error) {

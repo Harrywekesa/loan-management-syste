@@ -110,4 +110,38 @@ export class MpesaService {
             throw new Error("Failed to initiate B2C Transaction");
         }
     }
+    /**
+     * Check Account Balance (Async)
+     */
+    static async checkAccountBalance() {
+        try {
+            const token = await this.getAccessToken();
+            const shortcode = process.env.MPESA_B2C_SHORTCODE || process.env.MPESA_SHORTCODE; // Use B2C shortcode (Paybill/Bureau)
+            const initiator = process.env.MPESA_INITIATOR_NAME;
+            const securityCredential = process.env.MPESA_SECURITY_CREDENTIAL;
+            const callbackUrl = process.env.MPESA_CALLBACK_URL;
+
+            if (!shortcode || !initiator || !securityCredential || !callbackUrl) {
+                throw new Error("Missing M-Pesa Configuration for Balance Check");
+            }
+
+            const response = await axios.post(`${this.baseUrl}/mpesa/accountbalance/v1/query`, {
+                Initiator: initiator,
+                SecurityCredential: securityCredential,
+                CommandID: "AccountBalance",
+                PartyA: shortcode,
+                IdentifierType: "4", // 4 = Shortcode/Organization
+                Remarks: "Balance Check",
+                QueueTimeOutURL: `${callbackUrl}/balance/timeout`,
+                ResultURL: `${callbackUrl}/balance/result`,
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            return response.data;
+        } catch (error: any) {
+            console.error("Balance Check Error:", error?.response?.data || error.message);
+            throw new Error("Failed to initiate Balance Check");
+        }
+    }
 }
